@@ -1,6 +1,7 @@
+import { useIsFocused } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
 import { useEffect, useState } from "react";
-import { FlatList, Image, View } from "react-native";
+import { FlatList, Image } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import styles from "../styles/galeriaStyle";
 
@@ -9,15 +10,15 @@ type ItemProps = {
 };
 
 const Item = ({ title }: ItemProps) => (
-  <View style={styles.item}>
-    <Image
-      source={{ uri: `${FileSystem.documentDirectory}fotos/${title}` }}
-      style={{ width: 100, height: 100 }}
-    />
-  </View>
+  <Image
+    source={{ uri: `${FileSystem.documentDirectory}fotos/${title}` }}
+    style={styles.item}
+  />
 );
 
 export default function Galeria() {
+  const isFocused = useIsFocused();
+
   const [files, setFiles] = useState<{ id: string; title: string }[]>([]);
 
   useEffect(() => {
@@ -41,13 +42,15 @@ export default function Galeria() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <FlatList
-          style={styles.listPhotos}
-          data={files}
-          renderItem={({ item }) => <Item title={item.title} />}
-          keyExtractor={(item) => item.id}
-          numColumns={3}
-        />
+        {isFocused && (
+          <FlatList
+            style={styles.listPhotos}
+            data={files}
+            renderItem={({ item }) => <Item title={item.title} />}
+            keyExtractor={(item) => item.id}
+            numColumns={3}
+          />
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   );
