@@ -21,4 +21,23 @@ export default StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  photoContainer: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    padding: 10,
+  },
+  photo: {
+    width: "100%",
+    height: "80%",
+    borderRadius: 10,
+  },
+  backGalleryButton: {
+    position: "absolute",
+    left: 20,
+    top: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 50,
+    padding: 10,
+  }
 });

@@ -9,9 +9,19 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Permita que o aplicativo acesse a câmera do dispositivo.",
+        "NSLocationWhenInUseUsageDescription": "Permita que o aplicativo acesse sua localização enquanto estiver em uso.",
+        "NSLocationAlwaysUsageDescription": "Permita que o aplicativo acesse sua localização mesmo em segundo plano."
+      }
     },
     "android": {
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -35,9 +45,9 @@
         }
       ],
       [
-        "expo-camera",
+        "expo-location",
         {
-          "cameraPermission": "Permita que o aplicativo acesse a câmera do dispositivo."
+          "locationAlwaysAndWhenInUsePermission": "Permita que o aplicativo acesse sua localização mesmo em segundo plano."
         }
       ]
     ],

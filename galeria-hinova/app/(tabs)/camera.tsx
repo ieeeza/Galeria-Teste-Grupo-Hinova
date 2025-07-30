@@ -2,6 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useIsFocused } from "@react-navigation/native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as FileSystem from "expo-file-system";
+import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -13,10 +14,32 @@ export default function Camera() {
 
   const [photo, setPhoto] = useState<string | null>(null);
   const [facing, setFacing] = useState<CameraType>("back");
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null
+  );
   const [permission, requestPermission] = useCameraPermissions();
 
   useEffect(() => {
-    requestPermission().catch((error) =>
+    async function requestPermissionAndGetLocation(): Promise<void> {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permissão negada",
+          "Não foi possível acessar a localização."
+        );
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+      console.log("Localização atual:", location);
+    }
+
+    requestPermissionAndGetLocation();
+  }, []);
+
+  useEffect(() => {
+    requestPermission().catch((error: any) =>
       Alert.alert(
         "Erro",
         "Não foi possível solicitar permissão para a câmera: " + error.message
