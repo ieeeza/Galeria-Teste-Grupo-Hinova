@@ -1,12 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as FileSystem from "expo-file-system";
 import { useEffect, useState } from "react";
-import { FlatList, Image, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { photoProps } from "../../types/galeriaTypes";
+import { PhotoMetadata, PhotoProps } from "../../types/galeriaTypes";
+import { useIsFocused } from "@react-navigation/native";
 import styles from "../styles/galeriaStyle";
 
-const Photo = ({ file, onPress }: photoProps) => (
+const Photo = ({ file, onPress }: PhotoProps) => (
   <TouchableOpacity onPress={onPress}>
     <Image
       source={{ uri: `${FileSystem.documentDirectory}fotos/${file}` }}
@@ -16,10 +17,18 @@ const Photo = ({ file, onPress }: photoProps) => (
 );
 
 export default function Galeria() {
+  const isFocused = useIsFocused();
+
   const [files, setFiles] = useState<{ id: string }[]>([]);
-  const [selectedPhoto, setSelectedPhoto] = useState<{ id: string }>();
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoMetadata | null>(
+    null
+  );
 
   useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
     async function fetchPhotos() {
       const folder = FileSystem.documentDirectory + "fotos/";
       const folderInfo = await FileSystem.getInfoAsync(folder);
@@ -35,7 +44,16 @@ export default function Galeria() {
     }
 
     fetchPhotos();
-  }, []);
+  }, [isFocused]);
+
+  async function loadPhotoMetadados(id: string): Promise<void> {
+    const name = id.replace(/\.jpg$/, "");
+    const jsonUri = `${FileSystem.documentDirectory}fotos/${name}.json`;
+
+    const json = await FileSystem.readAsStringAsync(jsonUri);
+    const meta: PhotoMetadata = JSON.parse(json);
+    setSelectedPhoto(meta);
+  }
 
   return (
     <SafeAreaProvider>
@@ -47,10 +65,7 @@ export default function Galeria() {
             renderItem={({ item }) => (
               <Photo
                 file={item.id}
-                onPress={() => {
-                  setSelectedPhoto(item);
-                  console.log(selectedPhoto);
-                }}
+                onPress={() => loadPhotoMetadados(item.id)}
               />
             )}
             keyExtractor={(item) => item.id}
@@ -60,16 +75,21 @@ export default function Galeria() {
           <View style={styles.photoContainer}>
             <Image
               source={{
-                uri: `${FileSystem.documentDirectory}fotos/${selectedPhoto.id}`,
+                uri: `${selectedPhoto.uri}`,
               }}
               style={styles.photo}
             />
             <TouchableOpacity
               style={styles.backGalleryButton}
-              onPress={() => setSelectedPhoto(undefined)}
+              onPress={() => setSelectedPhoto(null)}
             >
               <Ionicons name="arrow-back-outline" size={32} color="white" />
             </TouchableOpacity>
+            <View style={styles.metadata}>
+              <Text>Data e hora: {selectedPhoto.date}</Text>
+              <Text>Latitude: {selectedPhoto.latitude.toFixed(6)}</Text>
+              <Text>Longitude: {selectedPhoto.longitude.toFixed(6)}</Text>
+            </View>
           </View>
         )}
       </SafeAreaView>

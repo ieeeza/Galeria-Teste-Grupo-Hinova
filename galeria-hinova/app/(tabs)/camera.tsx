@@ -6,17 +6,16 @@ import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Photo } from "../../types/cameraTypes";
 import styles from "../styles/cameraStyle";
 
 export default function Camera() {
   const cameraRef = useRef<CameraView>(null);
   const isFocused = useIsFocused();
 
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<Photo>();
   const [facing, setFacing] = useState<CameraType>("back");
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
+  const [location, setLocation] = useState<Location.LocationObject>();
   const [permission, requestPermission] = useCameraPermissions();
 
   useEffect(() => {
@@ -32,7 +31,6 @@ export default function Camera() {
 
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
-      console.log("Localização atual:", location);
     }
 
     requestPermissionAndGetLocation();
@@ -63,9 +61,25 @@ export default function Camera() {
   }
 
   async function takePicture(): Promise<void> {
+    if (!location) {
+      Alert.alert("Aguarde", "Obtendo localização...");
+      return;
+    }
+
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
-      setPhoto(photo.uri);
+      const photo = await cameraRef.current.takePictureAsync({
+        exif: true,
+        skipProcessing: true,
+      });
+      const date = `${new Date().toLocaleDateString(
+        "pt-BR"
+      )} ${new Date().toLocaleTimeString("pt-BR")}`;
+      setPhoto({
+        uri: photo.uri,
+        date,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
     }
   }
 
@@ -73,6 +87,7 @@ export default function Camera() {
     if (photo) {
       const folder = FileSystem.documentDirectory + "fotos/";
       const photoName = `Hinova-${Date.now()}.jpg`;
+      const jsonName = `Hinova-${Date.now()}.json`;
       const fileUri = folder + photoName;
 
       const folderInfo = await FileSystem.getInfoAsync(folder);
@@ -80,10 +95,30 @@ export default function Camera() {
         await FileSystem.makeDirectoryAsync(folder);
       }
 
+      if (!folderInfo.exists) {
+        await FileSystem.makeDirectoryAsync(folder, {
+          intermediates: true,
+        });
+      }
+
       await FileSystem.copyAsync({
-        from: photo,
+        from: photo.uri,
         to: fileUri,
       });
+
+      const metadata = {
+        uri: fileUri,
+        latitude: photo.latitude,
+        longitude: photo.longitude,
+        date: photo.date,
+      };
+
+
+      const metadataUri = folder + jsonName;
+      await FileSystem.writeAsStringAsync(
+        metadataUri,
+        JSON.stringify(metadata, null, 2)
+      );
 
       Alert.alert(
         "Notificação",
@@ -91,7 +126,7 @@ export default function Camera() {
         [
           {
             text: "OK",
-            onPress: () => setPhoto(null),
+            onPress: () => setPhoto(undefined),
           },
         ]
       );
@@ -131,10 +166,10 @@ export default function Camera() {
           )
         ) : (
           <View style={styles.cameraContainer}>
-            <Image style={styles.camera} source={{ uri: photo }} />
+            <Image style={styles.camera} source={{ uri: photo.uri }} />
             <TouchableOpacity
               style={styles.captureButton}
-              onPress={() => setPhoto(null)}
+              onPress={() => setPhoto(undefined)}
             >
               <Ionicons name="refresh-outline" size={64} color="white" />
             </TouchableOpacity>

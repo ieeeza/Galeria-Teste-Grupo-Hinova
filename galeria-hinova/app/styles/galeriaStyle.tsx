@@ -39,5 +39,10 @@ export default StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 50,
     padding: 10,
-  }
+  },
+  metadata: {
+    flex: 1,
+    flexDirection: "column",
+    padding: 10,
+  },
 });
