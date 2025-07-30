@@ -3,13 +3,10 @@ import { Dimensions, StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "row",
     justifyContent: "center",
-    maxWidth: Dimensions.get("window").width,
   },
   listPhotos: {
     flex: 1,
-    flexDirection: "row",
   },
   item: {
     width: Dimensions.get("window").width / 3.1,

@@ -84,54 +84,65 @@ export default function Camera() {
   }
 
   async function savePicture(): Promise<void> {
-    if (photo) {
-      const folder = FileSystem.documentDirectory + "fotos/";
-      const photoName = `Hinova-${Date.now()}.jpg`;
-      const jsonName = `Hinova-${Date.now()}.json`;
-      const fileUri = folder + photoName;
+    try {
+      if (photo) {
+        const folderPhotos = `${FileSystem.documentDirectory}fotos/`;
+        const folderInfo = await FileSystem.getInfoAsync(folderPhotos);
 
-      const folderInfo = await FileSystem.getInfoAsync(folder);
-      if (!folderInfo.exists) {
-        await FileSystem.makeDirectoryAsync(folder);
-      }
+        const photoName = `Hinova-${Date.now()}.jpg`;
 
-      if (!folderInfo.exists) {
-        await FileSystem.makeDirectoryAsync(folder, {
-          intermediates: true,
+        const fileUri = folderPhotos + photoName;
+
+        if (!folderInfo.exists) {
+          await FileSystem.makeDirectoryAsync(folderPhotos, {
+            intermediates: true,
+          });
+        }
+
+        await FileSystem.copyAsync({
+          from: photo.uri,
+          to: fileUri,
         });
+
+        const metadata = {
+          uri: fileUri,
+          latitude: photo.latitude,
+          longitude: photo.longitude,
+          date: photo.date,
+        };
+
+        const metadadosFolder = FileSystem.documentDirectory + "metadados/";
+        const metadadosPath = `${metadadosFolder}${photoName.replace(".jpg", ".json")}`;
+
+        const metadadosFolderInfo =
+          await FileSystem.getInfoAsync(metadadosFolder);
+        
+        if (!metadadosFolderInfo.exists) {
+          await FileSystem.makeDirectoryAsync(metadadosFolder);
+        }
+
+        await FileSystem.writeAsStringAsync(
+          metadadosPath,
+          JSON.stringify(metadata)
+        );
+
+        Alert.alert(
+          "Notificação",
+          `A foto foi salva com sucesso! Verifique sua galeria para mais informações`,
+          [
+            {
+              text: "OK",
+              onPress: () => setPhoto(undefined),
+            },
+          ]
+        );
       }
-
-      await FileSystem.copyAsync({
-        from: photo.uri,
-        to: fileUri,
-      });
-
-      const metadata = {
-        uri: fileUri,
-        latitude: photo.latitude,
-        longitude: photo.longitude,
-        date: photo.date,
-      };
-
-
-      const metadataUri = folder + jsonName;
-      await FileSystem.writeAsStringAsync(
-        metadataUri,
-        JSON.stringify(metadata, null, 2)
-      );
-
+    } catch (error: any) {
       Alert.alert(
-        "Notificação",
-        `A foto foi salva com sucesso! Verifique sua galeria para mais informações`,
-        [
-          {
-            text: "OK",
-            onPress: () => setPhoto(undefined),
-          },
-        ]
+        "Ocorreu um erro",
+        `Não foi possível salvar a foto: ${error.message}`
       );
-    } else {
-      Alert.alert("Erro", "Nenhuma foto para salvar.");
+      console.log(error);
     }
   }
 

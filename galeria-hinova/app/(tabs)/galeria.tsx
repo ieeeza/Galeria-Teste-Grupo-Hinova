@@ -1,10 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as FileSystem from "expo-file-system";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { PhotoMetadata, PhotoProps } from "../../types/galeriaTypes";
-import { useIsFocused } from "@react-navigation/native";
 import styles from "../styles/galeriaStyle";
 
 const Photo = ({ file, onPress }: PhotoProps) => (
@@ -17,42 +17,44 @@ const Photo = ({ file, onPress }: PhotoProps) => (
 );
 
 export default function Galeria() {
-  const isFocused = useIsFocused();
-
   const [files, setFiles] = useState<{ id: string }[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoMetadata | null>(
     null
   );
 
-  useEffect(() => {
-    if (!isFocused) {
-      return;
-    }
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchPhotos() {
+        const folder = FileSystem.documentDirectory + "fotos/";
+        const folderInfo = await FileSystem.getInfoAsync(folder);
 
-    async function fetchPhotos() {
-      const folder = FileSystem.documentDirectory + "fotos/";
-      const folderInfo = await FileSystem.getInfoAsync(folder);
+        if (!folderInfo.exists) return [];
 
-      if (!folderInfo.exists) return [];
+        const fileList = await FileSystem.readDirectoryAsync(folder);
+        const formattedFiles = fileList.map((file) => ({
+          id: file,
+        }));
 
-      const fileList = await FileSystem.readDirectoryAsync(folder);
-      const formattedFiles = fileList.map((file) => ({
-        id: file,
-      }));
+        setFiles(formattedFiles);
+      }
 
-      setFiles(formattedFiles);
-    }
-
-    fetchPhotos();
-  }, [isFocused]);
+      fetchPhotos();
+    }, [])
+  );
 
   async function loadPhotoMetadados(id: string): Promise<void> {
-    const name = id.replace(/\.jpg$/, "");
-    const jsonUri = `${FileSystem.documentDirectory}fotos/${name}.json`;
+    try {
+      const metadadosPath =
+        FileSystem.documentDirectory +
+        "metadados/" +
+        id.replace(".jpg", ".json");
 
-    const json = await FileSystem.readAsStringAsync(jsonUri);
-    const meta: PhotoMetadata = JSON.parse(json);
-    setSelectedPhoto(meta);
+      const json = await FileSystem.readAsStringAsync(metadadosPath);
+      const meta: PhotoMetadata = JSON.parse(json);
+      setSelectedPhoto(meta);
+    } catch (error: any) {
+      console.log(error);
+    }
   }
 
   return (
