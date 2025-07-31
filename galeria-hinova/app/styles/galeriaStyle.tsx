@@ -37,9 +37,26 @@ export default StyleSheet.create({
     borderRadius: 50,
     padding: 10,
   },
+  deleteImageGallery: {
+    position: "absolute",
+    right: 20,
+    top: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 50,
+    padding: 10,
+  },
   metadata: {
     flex: 1,
     flexDirection: "column",
     padding: 10,
+    backgroundColor: "rgb(100, 150, 184)",
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  metadataText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
   },
 });

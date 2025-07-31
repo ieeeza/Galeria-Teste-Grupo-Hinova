@@ -4,6 +4,7 @@ export interface PhotoProps {
 };
 
 export type PhotoMetadata = {
+  id: string;
   uri: string;
   date: string;
   latitude: number;

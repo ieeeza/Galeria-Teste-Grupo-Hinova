@@ -10,8 +10,8 @@ import { Photo } from "../../types/cameraTypes";
 import styles from "../styles/cameraStyle";
 
 export default function Camera() {
-  const cameraRef = useRef<CameraView>(null);
   const isFocused = useIsFocused();
+  const cameraRef = useRef<CameraView>(null);
 
   const [photo, setPhoto] = useState<Photo>();
   const [facing, setFacing] = useState<CameraType>("back");
@@ -47,9 +47,14 @@ export default function Camera() {
 
   if (!permission?.granted) {
     return (
-      <View style={styles.container}>
-        <Text>Permissão para câmera é necessária</Text>
-        <TouchableOpacity onPress={requestPermission}>
+      <View style={styles.containerPermission}>
+        <Text style={styles.textPermission}>
+          Permissão para câmera é necessária
+        </Text>
+        <TouchableOpacity
+          style={styles.buttonPermission}
+          onPress={requestPermission}
+        >
           <Text>Permitir</Text>
         </TouchableOpacity>
       </View>
@@ -75,6 +80,7 @@ export default function Camera() {
         "pt-BR"
       )} ${new Date().toLocaleTimeString("pt-BR")}`;
       setPhoto({
+        id: `Hinova-${Date.now()}.jpg`,
         uri: photo.uri,
         date,
         latitude: location.coords.latitude,
@@ -88,10 +94,7 @@ export default function Camera() {
       if (photo) {
         const folderPhotos = `${FileSystem.documentDirectory}fotos/`;
         const folderInfo = await FileSystem.getInfoAsync(folderPhotos);
-
-        const photoName = `Hinova-${Date.now()}.jpg`;
-
-        const fileUri = folderPhotos + photoName;
+        const fileUri = folderPhotos + photo.id;
 
         if (!folderInfo.exists) {
           await FileSystem.makeDirectoryAsync(folderPhotos, {
@@ -105,24 +108,25 @@ export default function Camera() {
         });
 
         const metadata = {
+          id: photo.id,
           uri: fileUri,
           latitude: photo.latitude,
           longitude: photo.longitude,
           date: photo.date,
         };
 
-        const metadadosFolder = FileSystem.documentDirectory + "metadados/";
-        const metadadosPath = `${metadadosFolder}${photoName.replace(".jpg", ".json")}`;
+        const metadataFolder = FileSystem.documentDirectory + "metadados/";
+        const metadataPath = `${metadataFolder}${photo.id.replace(".jpg", ".json")}`;
 
-        const metadadosFolderInfo =
-          await FileSystem.getInfoAsync(metadadosFolder);
-        
-        if (!metadadosFolderInfo.exists) {
-          await FileSystem.makeDirectoryAsync(metadadosFolder);
+        const metadataFolderInfo =
+          await FileSystem.getInfoAsync(metadataFolder);
+
+        if (!metadataFolderInfo.exists) {
+          await FileSystem.makeDirectoryAsync(metadataFolder);
         }
 
         await FileSystem.writeAsStringAsync(
-          metadadosPath,
+          metadataPath,
           JSON.stringify(metadata)
         );
 
@@ -179,12 +183,15 @@ export default function Camera() {
           <View style={styles.cameraContainer}>
             <Image style={styles.camera} source={{ uri: photo.uri }} />
             <TouchableOpacity
-              style={styles.captureButton}
+              style={styles.toggleButton}
               onPress={() => setPhoto(undefined)}
             >
               <Ionicons name="refresh-outline" size={64} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.toggleButton} onPress={savePicture}>
+            <TouchableOpacity
+              style={styles.captureButton}
+              onPress={savePicture}
+            >
               <Ionicons name="save-outline" size={64} color="white" />
             </TouchableOpacity>
           </View>
