@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "galeria-hinova",
-    "slug": "galeria-hinova",
+    "name": "Galeria de fotos Hinova",
+    "slug": "Galeria Hinova",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/simbolo-hinova.png",
     "scheme": "galeriahinova",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -23,8 +23,8 @@
         "ACCESS_COARSE_LOCATION"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/simbolo-hinova.png",
+        "backgroundColor": "transparent"
       },
       "edgeToEdgeEnabled": true
     },
