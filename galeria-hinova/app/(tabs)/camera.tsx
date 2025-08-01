@@ -3,7 +3,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as FileSystem from "expo-file-system";
 import * as Location from "expo-location";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Photo } from "../../types/cameraTypes";
@@ -15,48 +15,60 @@ export default function Camera() {
 
   const [photo, setPhoto] = useState<Photo>();
   const [facing, setFacing] = useState<CameraType>("back");
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [locationPermission, setLocationPermission] =
+    useState<Location.PermissionStatus | null>(null);
   const [location, setLocation] = useState<Location.LocationObject>();
-  const [permission, requestPermission] = useCameraPermissions();
 
-  useEffect(() => {
-    async function requestPermissionAndGetLocation(): Promise<void> {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permissão negada",
-          "Não foi possível acessar a localização."
-        );
-        return;
-      }
+  const requestLocationPermission = useCallback(async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    setLocationPermission(status);
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+    if (status !== "granted") {
+      Alert.alert(
+        "Permissão negada",
+        "Não foi possível acessar a localização."
+      );
     }
-
-    requestPermissionAndGetLocation();
   }, []);
 
   useEffect(() => {
-    requestPermission().catch((error: any) =>
+    requestCameraPermission().catch((error: any) =>
       Alert.alert(
         "Erro",
         "Não foi possível solicitar permissão para a câmera: " + error.message
       )
     );
-  }, [requestPermission]);
 
-  if (!permission?.granted) {
+    requestLocationPermission().catch((error: any) =>
+      Alert.alert(
+        "Erro",
+        "Não foi possível solicitar permissão para a localização: " +
+          error.message
+      )
+    );
+  }, [requestLocationPermission, requestCameraPermission]);
+
+  if (!cameraPermission?.granted) {
     return (
       <View style={styles.containerPermission}>
         <Text style={styles.textPermission}>
-          Permissão para câmera é necessária
+          Permissão para câmera é necessária.
         </Text>
-        <TouchableOpacity
-          style={styles.buttonPermission}
-          onPress={requestPermission}
-        >
-          <Text>Permitir</Text>
-        </TouchableOpacity>
+        <Text style={styles.textPermission}>
+          Por favor, ative nas configurações do dispositivo.
+        </Text>
+      </View>
+    );
+  } else if (!locationPermission) {
+    return (
+      <View style={styles.containerPermission}>
+        <Text style={styles.textPermission}>
+          Permissão para localização é necessária.
+        </Text>
+        <Text style={styles.textPermission}>
+          Por favor, ative nas configurações do dispositivo.
+        </Text>
       </View>
     );
   }
@@ -66,6 +78,9 @@ export default function Camera() {
   }
 
   async function takePicture(): Promise<void> {
+    let position = await Location.getCurrentPositionAsync({});
+    setLocation(position);
+
     if (!location) {
       Alert.alert("Aguarde", "Obtendo localização...");
       return;

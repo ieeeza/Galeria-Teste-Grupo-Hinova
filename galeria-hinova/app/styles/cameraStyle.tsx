@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   containerPermission: {
     flex: 1,
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -10,7 +11,6 @@ export default StyleSheet.create({
   textPermission: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 20,
   },
 
   buttonPermission: {
