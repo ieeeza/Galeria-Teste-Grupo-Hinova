@@ -27,7 +27,7 @@ const Photo = ({ file, onPress }: PhotoProps) => (
 export default function Galeria() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
-  
+
   const [files, setFiles] = useState<{ id: string }[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoMetadata | null>(
     null
@@ -84,6 +84,10 @@ export default function Galeria() {
       setSelectedPhoto(meta);
     } catch (error: any) {
       console.log(error);
+      Alert.alert(
+        "Erro ao carregar metadados da Imagem",
+        "Não foi possível carregar os metadados da imagem selecionada."
+      );
     }
   }
 
