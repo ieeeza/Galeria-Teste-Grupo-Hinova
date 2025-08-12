@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Galeria de fotos Hinova",
-    "slug": "Galeria Hinova",
+    "slug": "galeria-hinova",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/simbolo-hinova.png",
@@ -20,13 +20,16 @@
       "permissions": [
         "CAMERA",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/simbolo-hinova.png",
         "backgroundColor": "transparent"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ieza.galeriahinova"
     },
     "web": {
       "bundler": "metro",
@@ -53,6 +56,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "24ba317d-e290-470d-94f0-d537ae2661d9"
+      }
     }
   }
 }

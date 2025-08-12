@@ -29,9 +29,9 @@ export default function Galeria() {
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   const [files, setFiles] = useState<{ id: string }[]>([]);
-  const [selectedPhoto, setSelectedPhoto] = useState<PhotoMetadata | null>(
-    null
-  );
+  const [selectedPhoto, setSelectedPhoto] = useState<string>("");
+  const [selectedPhotoMetadata, setSelectedPhotoMetadata] =
+    useState<PhotoMetadata | null>(null);
 
   async function fetchPhotos(): Promise<void> {
     const folder = FileSystem.documentDirectory + "fotos/";
@@ -81,17 +81,25 @@ export default function Galeria() {
 
       const json = await FileSystem.readAsStringAsync(metadadosPath);
       const meta: PhotoMetadata = JSON.parse(json);
-      setSelectedPhoto(meta);
+      setSelectedPhotoMetadata(meta);
     } catch (error: any) {
-      console.log(error);
+      setSelectedPhotoMetadata(null);
       Alert.alert(
         "Erro ao carregar metadados da Imagem",
         "Não foi possível carregar os metadados da imagem selecionada."
       );
+      console.log(error);
     }
   }
 
-  async function handleDeletePhoto(id: string, uri: string): Promise<void> {
+  function handlePhotoPress(id: string): void {
+    setSelectedPhoto(id);
+    loadPhotoMetadados(id);
+  }
+
+  async function handleDeletePhoto(id: string): Promise<void> {
+    const uri = `${FileSystem.documentDirectory}fotos/${id}`;
+
     await FileSystem.deleteAsync(uri, { idempotent: true });
     await FileSystem.deleteAsync(uri.replace(".jpg", ".json"), {
       idempotent: true,
@@ -102,7 +110,7 @@ export default function Galeria() {
     }, 100);
   }
 
-  async function deletePhoto(id: string, uri: string): Promise<void> {
+  async function deletePhoto(id: string): Promise<void> {
     try {
       Alert.alert(
         "Excluir Foto",
@@ -114,7 +122,7 @@ export default function Galeria() {
           {
             text: "Excluir",
             onPress: () => {
-              handleDeletePhoto(id, uri);
+              handleDeletePhoto(id);
             },
           },
         ],
@@ -139,7 +147,7 @@ export default function Galeria() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setSelectedPhoto(null);
+      setSelectedPhoto("");
       fetchPhotos();
     });
   }
@@ -152,10 +160,7 @@ export default function Galeria() {
             style={styles.listPhotos}
             data={files}
             renderItem={({ item }) => (
-              <Photo
-                file={item.id}
-                onPress={() => loadPhotoMetadados(item.id)}
-              />
+              <Photo file={item.id} onPress={() => handlePhotoPress(item.id)} />
             )}
             keyExtractor={(item) => item.id}
             numColumns={3}
@@ -170,7 +175,7 @@ export default function Galeria() {
             <View style={styles.photoContainer}>
               <Image
                 source={{
-                  uri: `${selectedPhoto.uri}`,
+                  uri: `${FileSystem.documentDirectory}fotos/${selectedPhoto}`,
                 }}
                 style={styles.photo}
               />
@@ -182,19 +187,21 @@ export default function Galeria() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteImageGallery}
-                onPress={() => deletePhoto(selectedPhoto.id, selectedPhoto.uri)}
+                onPress={() => deletePhoto(selectedPhoto)}
               >
                 <Ionicons name="trash-outline" size={32} color="white" />
               </TouchableOpacity>
               <View style={styles.metadata}>
                 <Text style={styles.metadataText}>
-                  Data e hora: {selectedPhoto.date}
+                  Data e hora:{" "}
+                  {selectedPhotoMetadata ? selectedPhotoMetadata.date : ""}
                 </Text>
                 <Text style={styles.metadataText}>
-                  Latitude: {selectedPhoto.latitude.toFixed(6)}
+                  Latitude: {selectedPhotoMetadata?.latitude?.toFixed(6) ?? ""}
                 </Text>
                 <Text style={styles.metadataText}>
-                  Longitude: {selectedPhoto.longitude.toFixed(6)}
+                  Longitude:{" "}
+                  {selectedPhotoMetadata?.longitude?.toFixed(6) ?? ""}
                 </Text>
               </View>
             </View>
